@@ -50,6 +50,8 @@ if arg.gui:
             tag = VALID_TAGS[tag_input_box.get()]
         except KeyError:
             tag = tag_input_box.get()
+        except NameError:
+            tag = ""
         try:
             action_text = input_box.get("1.0", tk.END)
             pattern1 = '\s"'
@@ -66,6 +68,10 @@ if arg.gui:
             print(f"Captured Exception: {e}")
         output_box.insert("1.0", f"{tag}:{action_text}")
 
+    def clear_input_box():
+        input_box.delete("1.0", tk.END)
+        convert_action()
+
     # Set up main window
     root = tk.Tk()
     root.title("SWLW Action Formatter")
@@ -78,18 +84,18 @@ if arg.gui:
     
     ## Text box for action entry, and vertical scrollbar
     ### Input Box and Vertical Scroll Bar
-    input_box = tk.Text(root, wrap="word", height=3)
+    input_box = tk.Text(root, wrap=tk.WORD, height=3)
     input_vsb = ttk.Scrollbar(root, command=input_box.yview, orient="vertical")
     input_box.configure(yscrollcommand=input_vsb.set)
-    input_box.grid(column=2, row=1, padx=1, pady=1, sticky=tk.NS)
-    input_vsb.grid(column=3, row=1, padx=0, pady=0, sticky=tk.NS)
+    input_box.grid(column=2, row=1, rowspan=3, padx=1, pady=1, sticky=tk.NS)
+    input_vsb.grid(column=3, row=1, rowspan=3, padx=0, pady=0, sticky=tk.NS)
 
     ### Text box for action output and horizontal scrollbar
-    output_box = tk.Text(root, wrap="none", height=1)
+    output_box = tk.Text(root, wrap=tk.NONE, height=1)
     output_hsb = ttk.Scrollbar(root, command=output_box.xview, orient="horizontal")
     output_box.configure(xscrollcommand=output_hsb.set)
-    output_box.grid(column=2, row=2, padx=1, pady=1, sticky=tk.NSEW)
-    output_hsb.grid(column=2, row=3, padx=1, pady=0, sticky=tk.NSEW)
+    output_box.grid(column=2, row=4, padx=1, pady=1, sticky=tk.NSEW)
+    output_hsb.grid(column=2, row=5, padx=1, pady=0, sticky=tk.NSEW)
 
     ## Input boxes
     ### List of Character Tags
@@ -98,11 +104,18 @@ if arg.gui:
     tag_input_box.grid(column=1, row=1, columnspan=2, sticky=tk.NW, padx=1, pady=1)
 
     ## Buttons
+    clr_button = ttk.Button(root, text='Clear', command=clear_input_box)
+    clr_button.grid(column=1, row=2, sticky=tk.W, padx=1, pady=1)
     conv_button = ttk.Button(root, text='Convert', command=convert_action)
-    conv_button.grid(column=1, row=2, sticky=tk.W, padx=1, pady=1)
+    conv_button.grid(column=1, row=3, sticky=tk.W, padx=1, pady=1)
     copy_button = ttk.Button(root, text='Copy', command=lambda:send_to_clipboard(output_box.get("1.0", tk.END)[:-1]))
-    copy_button.grid(column=1, row=3, sticky=tk.W, padx=1, pady=1)
+    copy_button.grid(column=1, row=4, sticky=tk.W, padx=1, pady=1)
 
+    # Binds
+    input_box.bind('<Return>', convert_action)
+    input_box.bind('<Button-1>', convert_action)
+    input_box.bind('<Escape>', lambda e: clear_input_box())
+    input_box.bind('<Double-3>', lambda e: clear_input_box())    
     root.mainloop()
     sys.exit()
 
